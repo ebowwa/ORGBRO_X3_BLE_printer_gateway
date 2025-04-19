@@ -1,0 +1,71 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ORGBRO X3 BLE Printer</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    label { display: block; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>ORGBRO X3 BLE Printer</h1>
+
+  <form id="printForm" method="post" enctype="multipart/form-data">
+    <button id="scanBtn" type="button">Scan Printers</button>
+    <label for="printerSelect">Select Printer:</label>
+    <select id="printerSelect" name="printer_address" required>
+      <option value="">-- Select Printer --</option>
+    </select>
+
+    <label>Images (PNG/JPEG):<br>
+      <input type="file" name="images" multiple accept="image/*" required>
+    </label>
+
+    <label>Counts (comma-separated, e.g. 2,1,3):<br>
+      <input type="text" name="counts" placeholder="2,1,3" required>
+    </label>
+
+    <label>Order (0-based indices, e.g. 0,1,0):<br>
+      <input type="text" name="order" placeholder="0,1,0" required>
+    </label>
+
+    <label>Print Density (0-255):<br>
+      <input type="number" name="density" min="0" max="255" value="127">
+    </label>
+
+    <button type="submit">Print</button>
+  </form>
+
+  <div id="messages">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for msg in messages %}
+            <li>{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <script>
+    async function scanPrinters() {
+      const resp = await fetch('/scan');
+      const devices = await resp.json();
+      const sel = document.getElementById('printerSelect');
+      sel.innerHTML = '<option value="">-- Select Printer --</option>';
+      devices.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.address;
+        opt.textContent = `${d.name} (${d.address})`;
+        sel.appendChild(opt);
+      });
+    }
+    document.getElementById('scanBtn').addEventListener('click', scanPrinters);
+    // Auto-scan on page load
+    window.addEventListener('load', scanPrinters);
+  </script>
+</body>
+</html>
