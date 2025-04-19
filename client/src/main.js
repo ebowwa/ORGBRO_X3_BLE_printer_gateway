@@ -54,8 +54,11 @@ function applyDensityMap(img, dm, ctx) {
   ctx.putImageData(dp, 0, 0);
 }
 
+let previewItems = [];
+
 imageInput.addEventListener('change', () => {
   imagePreview.innerHTML = '';
+  previewItems = [];
   Array.from(imageInput.files).forEach((file, idx) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -68,6 +71,10 @@ imageInput.addEventListener('change', () => {
         canvas.height = img.height;
         const ctx = canvas.getContext('2d');
         applyDensityMap(img, dm, ctx);
+
+        // store a copy of original density map for reset
+        const originalMap = dm.map.slice();
+        previewItems.push({dm, originalMap, img, ctx});
 
         // wrap canvas in a relative container and add brush cursor overlay
         const wrapper = document.createElement('div');
@@ -244,3 +251,12 @@ brushSizeInput.addEventListener('input', () => {
 });
 // initialize brush size display
 brushSizeInput.dispatchEvent(new Event('input'));
+
+// reset edits: restore original density maps
+const resetBtn = document.getElementById('resetBtn');
+resetBtn.addEventListener('click', () => {
+  previewItems.forEach(item => {
+    item.dm.map.set(item.originalMap);
+    applyDensityMap(item.img, item.dm, item.ctx);
+  });
+});
