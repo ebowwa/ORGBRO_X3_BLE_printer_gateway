@@ -64,7 +64,7 @@ class BlePrinter:
     async def print_job(self, images, counts, order, density=127):
         await self.connect()
         await self.client.write_gatt_char(self.rx_char, ESC_INIT)
-        # Set print density
+        # Set print density (TODO: allow models/users to specify per-pixel density adjustments for fine control)
         await self.client.write_gatt_char(self.rx_char, bytes([0x12, density]))
 
         for idx in order:

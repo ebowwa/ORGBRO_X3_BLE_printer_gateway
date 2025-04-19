@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <title>ORGBRO X3 BLE Printer</title>
-  <link rel="stylesheet" href="/src/style.css" />
   <script type="module" src="/src/main.js"></script>
 </head>
-<body>
-  <div class="container">
+<body class="bg-gray-100 p-6">
+  <div class="container mx-auto bg-white p-6 rounded shadow">
     <h1>ORGBRO X3 BLE Printer</h1>
 
     <div id="messages"></div>
@@ -51,22 +51,19 @@
         <div id="imagePreview" class="preview-container"></div>
       </div>
 
-      <div class="form-group">
-        <label>Counts (comma-separated):</label>
-        <input type="text" name="counts" placeholder="2,1,3" required />
-      </div>
+      <div id="fileTableContainer" class="mt-4"></div>
+      <input type="hidden" name="counts" id="countsInput" />
+      <input type="hidden" name="order" id="orderInput" />
 
       <div class="form-group">
-        <label>Order (0-based indices):</label>
-        <input type="text" name="order" placeholder="0,1,0" required />
+        <label for="densityInput" class="block font-bold mb-1">Print Density (0-255):</label>
+        <div class="flex items-center space-x-2">
+          <input id="densityInput" type="range" name="density" min="0" max="255" value="127" class="flex-1" />
+          <span id="densityValue" class="w-12 text-center">127</span>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>Print Density (0-255):</label>
-        <input type="number" name="density" min="0" max="255" value="127" />
-      </div>
-
-      <button type="submit">Print</button>
+      <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">Print</button>
     </form>
   </div>
 </body>
