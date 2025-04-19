@@ -24,7 +24,31 @@
 
       <div class="form-group">
         <label>Images (PNG/JPEG):</label>
-        <input type="file" name="images" multiple accept="image/*" required />
+        <input id="imageInput" type="file" name="images" multiple accept="image/*" required />
+      </div>
+      <div class="form-group">
+        <label for="paperPreset">Paper Preset:</label>
+        <select id="paperPreset">
+          <option value="custom">Custom</option>
+          <option value="50mmx4m">50mm × 4m</option>
+          <option value="30mmD">Diameter 30mm</option>
+          <option value="80mmx3m">80mm × 3m</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="paperWidth">Paper Width:</label>
+        <select id="paperWidth" name="paper_width">
+          <option value="384">58mm (384px)</option>
+          <option value="576">80mm (576px)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="paperHeight">Paper Height (px):</label>
+        <input id="paperHeight" type="number" name="paper_height" value="600" min="1" />
+      </div>
+      <div class="form-group">
+        <label>Preview:</label>
+        <div id="imagePreview" class="preview-container"></div>
       </div>
 
       <div class="form-group">

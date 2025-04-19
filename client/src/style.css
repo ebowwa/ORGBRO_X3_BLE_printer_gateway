@@ -7,3 +7,19 @@ button { background-color: #007bff; color: #fff; border: none; cursor: pointer; 
 button:hover { background-color: #0056b3; }
 .errors { background-color: #f8d7da; color: #721c24; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
 .success { background-color: #d4edda; color: #155724; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+
+/* preview styling */
+.preview-container {
+  border: 1px dashed #333;
+  width: 384px;
+  min-height: 100px;
+  padding: 0.5rem;
+  overflow: auto;
+  max-height: 80vh;
+}
+.preview-container img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0.5rem 0;
+}
