@@ -1,3 +1,4 @@
 Flask>=2.0
 bleak>=0.20
 Pillow>=9.0
+numpy>=1.23
