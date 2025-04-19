@@ -2,3 +2,5 @@ __pycache__
 venv
 uploads
 .env
+*node_modules
+client/pnpm-lock.yaml

@@ -1,53 +1,62 @@
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>ORGBRO X3 BLE Printer</title>
   <style>
-    body { font-family: sans-serif; margin: 2rem; }
-    label { display: block; margin-top: 1rem; }
+    body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 700px; background: #fff; margin: 2rem auto; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .form-group { margin-bottom: 1.5rem; }
+    label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
+    input, select, button { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { background-color: #007bff; color: #fff; border: none; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    .errors { background-color: #f8d7da; color: #721c24; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+    .success { background-color: #d4edda; color: #155724; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
   </style>
 </head>
 <body>
-  <h1>ORGBRO X3 BLE Printer</h1>
+  <div class="container">
+    <h1>ORGBRO X3 BLE Printer</h1>
 
-  <form id="printForm" method="post" enctype="multipart/form-data">
-    <button id="scanBtn" type="button">Scan Printers</button>
-    <label for="printerSelect">Select Printer:</label>
-    <select id="printerSelect" name="printer_address" required>
-      <option value="">-- Select Printer --</option>
-    </select>
+    <form id="printForm" method="post" enctype="multipart/form-data">
+      <button id="scanBtn" type="button">Scan Printers</button>
+      <label for="printerSelect">Select Printer:</label>
+      <select id="printerSelect" name="printer_address" required>
+        <option value="">-- Select Printer --</option>
+      </select>
 
-    <label>Images (PNG/JPEG):<br>
-      <input type="file" name="images" multiple accept="image/*" required>
-    </label>
+      <label>Images (PNG/JPEG):<br>
+        <input type="file" name="images" multiple accept="image/*" required>
+      </label>
 
-    <label>Counts (comma-separated, e.g. 2,1,3):<br>
-      <input type="text" name="counts" placeholder="2,1,3" required>
-    </label>
+      <label>Counts (comma-separated, e.g. 2,1,3):<br>
+        <input type="text" name="counts" placeholder="2,1,3" required>
+      </label>
 
-    <label>Order (0-based indices, e.g. 0,1,0):<br>
-      <input type="text" name="order" placeholder="0,1,0" required>
-    </label>
+      <label>Order (0-based indices, e.g. 0,1,0):<br>
+        <input type="text" name="order" placeholder="0,1,0" required>
+      </label>
 
-    <label>Print Density (0-255):<br>
-      <input type="number" name="density" min="0" max="255" value="127">
-    </label>
+      <label>Print Density (0-255):<br>
+        <input type="number" name="density" min="0" max="255" value="127">
+      </label>
 
-    <button type="submit">Print</button>
-  </form>
+      <button type="submit">Print</button>
+    </form>
 
-  <div id="messages">
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-          {% for msg in messages %}
-            <li>{{ msg }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+    {% if error_messages %}
+    <div class="errors">
+      <ul>
+        {% for err in error_messages %}
+        <li>{{ err }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    {% if success_message %}
+    <div class="success">{{ success_message }}</div>
+    {% endif %}
   </div>
 
   <script>
