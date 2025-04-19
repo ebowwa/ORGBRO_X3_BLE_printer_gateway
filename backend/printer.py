@@ -1,6 +1,7 @@
 import asyncio
 from bleak import BleakScanner, BleakClient
 from PIL import Image
+import numpy as np
 
 NUS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 NUS_RX_CHAR_UUID    = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
@@ -36,31 +37,23 @@ class BlePrinter:
         self.rx_char = svc.get_characteristic(NUS_RX_CHAR_UUID)
 
     def image_to_raster_bytes(self, image_path: str, density: int = 127) -> bytes:
-        img = Image.open(image_path).convert("L")  # 8-bit grayscale
-        threshold = density
-        width, height = img.size
-        bytes_per_row = (width + 7) // 8
-        xL, xH = bytes_per_row & 0xFF, (bytes_per_row >> 8) & 0xFF
-        yL, yH = height & 0xFF, (height >> 8) & 0xFF
+        img = Image.open(image_path).convert("L")
+        arr = np.array(img)
+        bw = (arr < density).astype(np.uint8)
+        H, W = bw.shape
 
-        raster = bytearray()
-        raster.extend(GS_RASTER_CMD)
-        raster.append(0x00)  # m = 0 (normal)
-        raster.extend([xL, xH, yL, yH])
+        pad = (-W) % 8
+        if pad:
+            bw = np.pad(bw, ((0,0),(0,pad)), constant_values=0)
 
-        pixels = img.load()
-        for y in range(height):
-            byte = 0
-            for x in range(width):
-                # apply density threshold per pixel
-                bit = 1 if pixels[x, y] < threshold else 0
-                byte = (byte << 1) | bit
-                if (x % 8) == 7:
-                    raster.append(byte)
-                    byte = 0
-            if width % 8:
-                byte <<= (8 - (width % 8))
-                raster.append(byte)
+        packed = np.packbits(bw, axis=1)
+
+        bytes_per_row = packed.shape[1]
+        xL, xH = bytes_per_row & 0xFF, bytes_per_row >> 8
+        yL, yH = H & 0xFF, H >> 8
+
+        raster = bytearray(GS_RASTER_CMD + b'\x00' + bytes([xL, xH, yL, yH]))
+        raster.extend(packed.flatten().tolist())
         return bytes(raster)
 
     async def print_job(self, images, counts, order, density=127):

@@ -1,6 +1,6 @@
 # MVP Run
-What is this? A: A simple way to print stickers.
-whats the goal? A: To print stickers. To learn new techniques with thermal printing and image generation. And to optimize printing techniques
+- What is this? A: A simple way to print stickers.
+- What's the goal? A: To print stickers. To learn new techniques with thermal printing and image generation. And to optimize printing techniques
 
 ## MVP Features
 1. queue

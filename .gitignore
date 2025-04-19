@@ -6,3 +6,4 @@ uploads
 client/pnpm-lock.yaml
 .DSstore
 .DS_Store
+mvp_run.md
