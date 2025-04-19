@@ -5,6 +5,7 @@ from printer import BlePrinter
 import threading
 import queue
 import time
+from metrics import metrics, get_metrics_response
 
 # Flask app setup
 app = Flask(__name__, static_folder='static', template_folder='templates')
@@ -13,16 +14,6 @@ UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 job_queue = queue.Queue()
-metrics = {
-    'total_jobs': 0,
-    'success_jobs': 0,
-    'failure_jobs': 0,
-    'job_times': [],
-    'wait_times': [],
-    'prints': 0,
-    'queue_length': 0,
-    'average_wait_time': 0
-}
 
 def worker():
     while True:
@@ -33,13 +24,27 @@ def worker():
             printer = BlePrinter(job['printer_address'])
             asyncio.run(printer.print_job(job['images'], job['counts'], job['order'], job['density']))
             metrics['success_jobs'] += 1
-        except Exception:
+        except Exception as e:
+            if 'jam' in str(e).lower():
+                metrics['paper_jams'] += 1
             metrics['failure_jobs'] += 1
         end_run = time.time()
         duration = end_run - start_run
         metrics['job_times'].append(duration)
         metrics['wait_times'].append(wait_time)
         metrics['prints'] += sum(job['counts'])
+        # calculate ink usage
+        ink = 0
+        for idx, cnt in zip(job['order'], job['counts']):
+            raster = printer.image_to_raster_bytes(job['images'][idx], job['density'])
+            ink += sum(bin(b).count('1') for b in raster) * cnt
+        metrics['ink_usage'] += ink
+        # read temperature
+        try:
+            temp = printer.read_temperature()
+            metrics['temperatures'].append(temp)
+        except Exception:
+            pass
         metrics['queue_length'] = job_queue.qsize()
         metrics['average_wait_time'] = sum(metrics['wait_times']) / len(metrics['wait_times'])
         job_queue.task_done()
@@ -100,15 +105,7 @@ def scan_printers():
 
 @app.route('/metrics', methods=['GET'])
 def get_metrics():
-    return jsonify({
-        'total_jobs': metrics['total_jobs'],
-        'success_jobs': metrics['success_jobs'],
-        'failure_jobs': metrics['failure_jobs'],
-        'average_job_time': sum(metrics['job_times']) / len(metrics['job_times']) if metrics['job_times'] else 0,
-        'prints': metrics['prints'],
-        'queue_length': metrics['queue_length'],
-        'average_wait_time': metrics['average_wait_time']
-    })
+    return jsonify(get_metrics_response())
 
 @app.route('/queue', methods=['GET'])
 def get_queue():

@@ -4,6 +4,5 @@ uploads
 .env
 *node_modules
 client/pnpm-lock.yaml
-.DSstore
 .DS_Store
 mvp_run.md
