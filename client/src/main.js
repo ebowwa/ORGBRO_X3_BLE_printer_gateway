@@ -32,6 +32,100 @@ const imageInput = document.getElementById('imageInput');
 const imagePreview = document.getElementById('imagePreview');
 const fileTableContainer = document.getElementById('fileTableContainer');
 
+// density-paint helpers
+function createDensityMap(img, defaultD = 127) {
+  const {width, height} = img;
+  return {map: new Uint8Array(width * height).fill(defaultD), width, height};
+}
+function setPixelDensity(dm, x, y, d) {
+  if (x < 0 || y < 0 || x >= dm.width || y >= dm.height) return;
+  dm.map[y * dm.width + x] = d;
+}
+function applyDensityMap(img, dm, ctx) {
+  ctx.drawImage(img, 0, 0);
+  const dp = ctx.getImageData(0, 0, dm.width, dm.height);
+  const data = dp.data;
+  for (let i = 0; i < dm.map.length; i++) {
+    const v = data[i * 4];
+    const thresh = dm.map[i];
+    const out = v < thresh ? 0 : 255;
+    data[i * 4] = data[i * 4 + 1] = data[i * 4 + 2] = out;
+  }
+  ctx.putImageData(dp, 0, 0);
+}
+
+imageInput.addEventListener('change', () => {
+  imagePreview.innerHTML = '';
+  Array.from(imageInput.files).forEach((file, idx) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const defaultD = parseInt(document.getElementById('densityInput').value);
+        const dm = createDensityMap(img, defaultD);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        applyDensityMap(img, dm, ctx);
+
+        // wrap canvas in a relative container and add brush cursor overlay
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'inline-block';
+        // ensure preview container is relative for absolute overlay
+        imagePreview.style.position = 'relative';
+        // append canvas into wrapper
+        wrapper.appendChild(canvas);
+        // create brush cursor indicator
+        const brushCursor = document.createElement('div');
+        brushCursor.style.position = 'absolute';
+        brushCursor.style.pointerEvents = 'none';
+        brushCursor.style.border = '2px solid rgba(255,0,0,0.8)';
+        brushCursor.style.borderRadius = '50%';
+        brushCursor.style.transform = 'translate(-50%, -50%)';
+        wrapper.appendChild(brushCursor);
+        // painting state
+        let painting = false;
+        canvas.addEventListener('mousedown', () => (painting = true));
+        window.addEventListener('mouseup', () => (painting = false));
+        canvas.addEventListener('mouseleave', () => (brushCursor.style.display = 'none'));
+        canvas.addEventListener('mouseenter', () => (brushCursor.style.display = 'block'));
+        canvas.addEventListener('mousemove', e => {
+          const rect = canvas.getBoundingClientRect();
+          const mx = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
+          const my = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
+          const localX = e.clientX - rect.left;
+          const localY = e.clientY - rect.top;
+          // update cursor size and position
+          const brushSize = parseInt(document.getElementById('brushSizeInput').value);
+          brushCursor.style.width = `${brushSize * 2}px`;
+          brushCursor.style.height = `${brushSize * 2}px`;
+          brushCursor.style.left = `${localX}px`;
+          brushCursor.style.top = `${localY}px`;
+          if (painting) {
+            const brushD = parseInt(document.getElementById('densityInput').value);
+            // paint circular brush mask
+            for (let dy = -brushSize; dy <= brushSize; dy++) {
+              for (let dx = -brushSize; dx <= brushSize; dx++) {
+                if (dx*dx + dy*dy <= brushSize*brushSize) {
+                  setPixelDensity(dm, mx + dx, my + dy, brushD);
+                }
+              }
+            }
+            applyDensityMap(img, dm, ctx);
+          }
+        });
+        // add wrapper (with canvas & overlay) to preview
+        imagePreview.appendChild(wrapper);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  buildFileTable(imageInput.files);
+});
+
 function buildFileTable(files) {
   const container = fileTableContainer;
   container.innerHTML = '';
@@ -56,20 +150,6 @@ function buildFileTable(files) {
   table.appendChild(tbody);
   container.appendChild(table);
 }
-
-imageInput.addEventListener('change', () => {
-  imagePreview.innerHTML = '';
-  Array.from(imageInput.files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = document.createElement('img');
-      img.src = reader.result;
-      imagePreview.appendChild(img);
-    };
-    reader.readAsDataURL(file);
-  });
-  buildFileTable(imageInput.files);
-});
 
 // adjust preview-container size and persist defaults
 const paperWidthSelect = document.getElementById('paperWidth');
@@ -155,3 +235,12 @@ densityInput.addEventListener('input', () => {
 });
 // initialize preview effect
 densityInput.dispatchEvent(new Event('input'));
+
+// brush size preview effect
+const brushSizeInput = document.getElementById('brushSizeInput');
+const brushSizeValue = document.getElementById('brushSizeValue');
+brushSizeInput.addEventListener('input', () => {
+  brushSizeValue.textContent = brushSizeInput.value;
+});
+// initialize brush size display
+brushSizeInput.dispatchEvent(new Event('input'));
