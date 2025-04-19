@@ -35,8 +35,9 @@ class BlePrinter:
         svc = await self.client.get_service(NUS_SERVICE_UUID)
         self.rx_char = svc.get_characteristic(NUS_RX_CHAR_UUID)
 
-    def image_to_raster_bytes(self, image_path: str) -> bytes:
-        img = Image.open(image_path).convert("1")  # 1-bit B/W
+    def image_to_raster_bytes(self, image_path: str, density: int = 127) -> bytes:
+        img = Image.open(image_path).convert("L")  # 8-bit grayscale
+        threshold = density
         width, height = img.size
         bytes_per_row = (width + 7) // 8
         xL, xH = bytes_per_row & 0xFF, (bytes_per_row >> 8) & 0xFF
@@ -51,7 +52,8 @@ class BlePrinter:
         for y in range(height):
             byte = 0
             for x in range(width):
-                bit = 0 if pixels[x, y] else 1
+                # apply density threshold per pixel
+                bit = 1 if pixels[x, y] < threshold else 0
                 byte = (byte << 1) | bit
                 if (x % 8) == 7:
                     raster.append(byte)
@@ -68,7 +70,8 @@ class BlePrinter:
         await self.client.write_gatt_char(self.rx_char, bytes([0x12, density]))
 
         for idx in order:
-            raster = self.image_to_raster_bytes(images[idx])
+            # include density when generating raster bytes
+            raster = self.image_to_raster_bytes(images[idx], density)
             for _ in range(counts[idx]):
                 await self.client.write_gatt_char(self.rx_char, raster)
                 await self.client.write_gatt_char(self.rx_char, bytes([0x1B, 0x64, 3]))

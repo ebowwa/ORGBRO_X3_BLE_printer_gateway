@@ -5,3 +5,4 @@ uploads
 *node_modules
 client/pnpm-lock.yaml
 .DSstore
+.DS_Store
