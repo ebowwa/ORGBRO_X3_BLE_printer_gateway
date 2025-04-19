@@ -1,3 +1,5 @@
+import './preview.js';
+
 // client/src/main.js
 
 async function scanPrinters() {
@@ -57,6 +59,7 @@ function applyDensityMap(img, dm, ctx) {
 let previewItems = [];
 
 imageInput.addEventListener('change', () => {
+  return; // skip duplicate preview, handled in preview.js
   imagePreview.innerHTML = '';
   previewItems = [];
   Array.from(imageInput.files).forEach((file, idx) => {
@@ -140,13 +143,11 @@ function buildFileTable(files) {
   const table = document.createElement('table');
   table.className = 'min-w-full divide-y divide-gray-200';
   const thead = document.createElement('thead');
-  thead.innerHTML = `<tr class="bg-gray-50"><th class="px-4 py-2">Preview</th><th class="px-4 py-2">Filename</th><th class="px-4 py-2">Count</th><th class="px-4 py-2">Order</th></tr>`;
+  thead.innerHTML = `<tr class="bg-gray-50"><th class="px-4 py-2">Filename</th><th class="px-4 py-2">Count</th><th class="px-4 py-2">Order</th></tr>`;
   table.appendChild(thead);
   const tbody = document.createElement('tbody');
   Array.from(files).forEach((file, idx) => {
     const tr = document.createElement('tr'); tr.className = 'border-b';
-    const tdPrev = document.createElement('td'); tdPrev.className = 'px-4 py-2';
-    const img = document.createElement('img'); img.src = URL.createObjectURL(file); img.className = 'h-16 mx-auto'; tdPrev.appendChild(img); tr.appendChild(tdPrev);
     const tdName = document.createElement('td'); tdName.className = 'px-4 py-2'; tdName.textContent = file.name; tr.appendChild(tdName);
     const tdCount = document.createElement('td'); tdCount.className = 'px-4 py-2';
     const inputCount = document.createElement('input'); inputCount.type = 'number'; inputCount.min = 1; inputCount.value = 1; inputCount.className = 'count-input border rounded px-2 py-1 w-20'; tdCount.appendChild(inputCount); tr.appendChild(tdCount);

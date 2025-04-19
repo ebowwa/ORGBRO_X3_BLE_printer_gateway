@@ -1,12 +1,14 @@
-#  i want to be able to manipulate unique pixels
-# i want an llm to be able to do this
-# i see we can modify the density of the whole image but im sure we can be far more specific and niche than that
+"""Module for pixel-level density control.
+Default print resolution: 300 DPI."""
+
+# DPI resolution (dots per inch) for density simulations
+DEFAULT_DPI = 300
 
 import numpy as np
 from PIL import Image
 
-def create_density_map(image_path: str, default_density: int = 127) -> np.ndarray:
-    """Generate a density map filled with the default_density for the given image dimensions."""
+def create_density_map(image_path: str, default_density: int = 127, dpi: int = DEFAULT_DPI) -> np.ndarray:
+    """Generate a density map filled with the default_density for the given image dimensions at the specified DPI (default: 300 DPI)."""
     img = Image.open(image_path).convert("L")
     arr = np.array(img)
     return np.full(arr.shape, default_density, dtype=np.uint8)
